@@ -21,16 +21,40 @@ func (pu ProductUsecase) GetProducts() ([]model.Product, error) {
 	return products, nil
 }
 
-func (pu ProductUsecase) GetProduct(id int) (model.Product, error) {
-	product, err := pu.productRepository.GetProduct(id)
+func (pu ProductUsecase) GetProductById(id int) (*model.Product, error) {
+	product, err := pu.productRepository.GetProductById(id)
 	if err != nil {
-		return model.Product{}, err
+		return nil, err
 	}
 	return product, nil
 }
 
 func (pu ProductUsecase) CreateProduct(product model.Product) (model.Product, error) {
 	product, err := pu.productRepository.CreateProduct(product)
+	if err != nil {
+		return model.Product{}, err
+	}
+	return product, nil
+}
+
+func (pu ProductUsecase) UpdateProduct(product model.Product) (model.Product, error) {
+	product, err := pu.productRepository.UpdateProduct(product)
+	if err != nil {
+		return model.Product{}, err
+	}
+	return product, nil
+}
+
+func (pu ProductUsecase) DeleteProduct(id int) error {
+	err := pu.productRepository.DeleteProduct(id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (pu ProductUsecase) GetProductByName(name string) (model.Product, error) {
+	product, err := pu.productRepository.GetProductByName(name)
 	if err != nil {
 		return model.Product{}, err
 	}

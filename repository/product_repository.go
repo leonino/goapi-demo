@@ -20,9 +20,9 @@ func NewProductRepository(connection *sql.DB) ProductRepository {
 
 func (pr *ProductRepository) GetProducts() ([]model.Product, error) {
 	products := []model.Product{}
-	const sql = "SELECT * FROM product"
+	const query = "SELECT * FROM product"
 
-	rows, err := pr.connection.Query(sql)
+	rows, err := pr.connection.Query(query)
 	if err != nil {
 		fmt.Println(err)
 		return []model.Product{}, err
@@ -40,23 +40,25 @@ func (pr *ProductRepository) GetProducts() ([]model.Product, error) {
 	return products, nil
 }
 
-func (pr *ProductRepository) GetProduct(id int) (model.Product, error) {
-	sql := "SELECT * FROM product WHERE id = $1"
-	row := pr.connection.QueryRow(sql, id)
+func (pr *ProductRepository) GetProductById(id int) (*model.Product, error) {
+	query := "SELECT * FROM product WHERE id = $1"
+	row := pr.connection.QueryRow(query, id)
 
 	product := model.Product{}
-	err := row.Scan(&product.ID, &product.Name, &product.Price)
-	if err != nil {
+	if err := row.Scan(&product.ID, &product.Name, &product.Price); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("product with id %d not found", id)
+		}
 		fmt.Println(err)
-		return model.Product{}, err
+		return nil, err
 	}
-	return product, nil
+	return &product, nil
 }
 
 func (pr *ProductRepository) CreateProduct(product model.Product) (model.Product, error) {
-	sql := "INSERT INTO product (product_name, price) VALUES ($1, $2) RETURNING id"
+	query := "INSERT INTO product (product_name, price) VALUES ($1, $2) RETURNING id"
 
-	err := pr.connection.QueryRow(sql, product.Name, product.Price).Scan(&product.ID)
+	err := pr.connection.QueryRow(query, product.Name, product.Price).Scan(&product.ID)
 	if err != nil {
 		fmt.Println(err)
 		return model.Product{}, err
@@ -66,9 +68,9 @@ func (pr *ProductRepository) CreateProduct(product model.Product) (model.Product
 }
 
 func (pr *ProductRepository) UpdateProduct(product model.Product) (model.Product, error) {
-	sql := "UPDATE product SET product_name = $1, price = $2 WHERE id = $3"
+	query := "UPDATE product SET product_name = $1, price = $2 WHERE id = $3"
 
-	_, err := pr.connection.Exec(sql, product.Name, product.Price, product.ID)
+	_, err := pr.connection.Exec(query, product.Name, product.Price, product.ID)
 	if err != nil {
 		fmt.Println(err)
 		return model.Product{}, err
@@ -77,9 +79,9 @@ func (pr *ProductRepository) UpdateProduct(product model.Product) (model.Product
 }
 
 func (pr *ProductRepository) DeleteProduct(id int) error {
-	sql := "DELETE FROM product WHERE id = $1"
+	query := "DELETE FROM product WHERE id = $1"
 
-	_, err := pr.connection.Exec(sql, id)
+	_, err := pr.connection.Exec(query, id)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -88,8 +90,8 @@ func (pr *ProductRepository) DeleteProduct(id int) error {
 }
 
 func (pr *ProductRepository) GetProductByName(name string) (model.Product, error) {
-	sql := "SELECT * FROM product WHERE product_name = $1"
-	row := pr.connection.QueryRow(sql, name)
+	query := "SELECT * FROM product WHERE product_name = $1"
+	row := pr.connection.QueryRow(query, name)
 
 	product := model.Product{}
 	err := row.Scan(&product.ID, &product.Name, &product.Price)

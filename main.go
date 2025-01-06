@@ -27,9 +27,10 @@ func main() {
 
 	server.GET("/products", productController.GetProducts)
 	server.POST("/products", productController.CreateProduct)
-	//server.PUT("/products/:id", productController.UpdateProduct)
-	//server.DELETE("/products/:id", productController.DeleteProduct)
-	//server.GET("/products/:id", productController.GetProductByName)
+	server.GET("/products/:id", productController.GetProductById)
+	server.PUT("/products/:id", productController.UpdateProduct)
+	server.DELETE("/products/:id", productController.DeleteProduct)
+	server.GET("/products/name/:name", productController.GetProductByName)
 
 	// Ping
 	server.GET("/ping", func(c *gin.Context) {
